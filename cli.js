@@ -11,12 +11,10 @@ const Promise = require('es6-promise').Promise;
 const frame = elegantSpinner();
 
 const propsToShow = [
-  'Title', 'Year', 'Released', 'Runtime', 
-  'Genre', 'Director', 'Writer', 'Actors',
+  'Year', 'Genre', 'Director', 'Writer', 'Actors',
   'Plot', 'Language', 'Country', 'Awards', 
-  'Metascore', 'imdbRating', 'tomatoMeter', 
-  'BoxOffice', 'Production'
-];
+  'Metascore', 'imdbRating', 'BoxOffice', 'Production', 'Released', 'Runtime', 'BoxOffice', 'Poster'
+]; // 'Title'
   
 const propsToCompare = [
   'Title', 'Year', 'Released', 'Runtime',
@@ -91,7 +89,7 @@ function printInfo(movie) {
 
   propsToShow.forEach(function(prop, i, arr) {
         if(movie[prop] !== 'N/A'){
-        console.log(chalk.bold.cyan(prop), " ".repeat(13-prop.length),"        ::", movie[prop], "");
+        console.log(chalk.bold.cyan(prop)+"::", movie[prop], "");
         }
   });
 }
