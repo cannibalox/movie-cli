@@ -1,19 +1,25 @@
 #!/usr/bin/env node
 'use strict';
 
-const program = require('commander');
-const chalk = require('chalk');
-const elegantSpinner = require('elegant-spinner');
-const logUpdate = require('log-update');
-const fetch = require('isomorphic-fetch');
-const Promise = require('es6-promise').Promise;
-
+// const program = require('commander');
+// const chalk = require('chalk');
+// const elegantSpinner = require('elegant-spinner');
+// const logUpdate = require('log-update');
+// const fetch = require('isomorphic-fetch');
+// const frame = elegantSpinner();
+// const frame = elegantSpinner();
+import program from 'commander';
+import clipboardy from 'clipboardy';
+import chalk from 'chalk';
+import elegantSpinner from 'elegant-spinner';
+import logUpdate from 'log-update';
+import fetch from 'isomorphic-fetch';
 const frame = elegantSpinner();
 
 const propsToShow = [
   'Year', 'Genre', 'Director', 'Writer', 'Actors',
   'Plot', 'Language', 'Country', 'Awards', 
-  'Metascore', 'imdbRating', 'BoxOffice', 'Production', 'Released', 'Runtime', 'BoxOffice', 'Poster'
+  'Metascore', 'imdbRating', 'Production', 'Released', 'Runtime', 'BoxOffice', 'Poster'
 ]; // 'Title'
   
 const propsToCompare = [
@@ -86,11 +92,20 @@ function printInfo(movie) {
     console.log(chalk.red(movie.Error));
     process.exit(1);
   }
-
+  var output = "Tags:: #movies, #watched\n"; // hpx
   propsToShow.forEach(function(prop, i, arr) {
         if(movie[prop] !== 'N/A'){
         console.log(chalk.bold.cyan(prop)+"::", movie[prop], "");
+
+        // === coopy to clipboard hpx====
+        if (prop == 'Plot' || prop == 'BoxOffice' || prop == 'Awards') {output = output.concat(prop,':: "', movie[prop], '"\n');}
+          else
+        {output = output.concat(prop,":: ", movie[prop], "\n");} //hpx
         }
   });
+// hpx copy to clipboard
+// console.log(output);
+clipboardy.writeSync(output);
+console.log('\n>>>>>>  copied to clipboard ! <<<<<<<<<<<<<');
 }
 
