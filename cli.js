@@ -96,8 +96,7 @@ function printInfo(movie) {
         {output = output.concat(prop,":: ", movie[prop], "\n");} //hpx
         }
   });
-// hpx copy to clipboard
-// console.log(output);
+// copy to clipboard
 clipboardy.writeSync(output);
 console.log('\n>>>>>>  copied to clipboard ! <<<<<<<<<<<<<');
 }
