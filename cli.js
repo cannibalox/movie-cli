@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-// const program = require('commander');
-// const chalk = require('chalk');
-// const elegantSpinner = require('elegant-spinner');
-// const logUpdate = require('log-update');
-// const fetch = require('isomorphic-fetch');
-// const frame = elegantSpinner();
-// const frame = elegantSpinner();
 import program from 'commander';
 import clipboardy from 'clipboardy';
 import chalk from 'chalk';
