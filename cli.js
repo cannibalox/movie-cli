@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 "use strict";
 
-const program = require("commander");
-const chalk = require("chalk");
-const elegantSpinner = require("elegant-spinner");
-const logUpdate = require("log-update");
-const fetch = require("isomorphic-fetch");
-const frame = elegantSpinner();
-const cliSelect = require("cli-select");
-const clipboardy = require("node-clipboardy");
-const dayjs = require("dayjs");
+import { Command } from "commander";
+import chalk from "chalk";
+import elegantSpinner from "elegant-spinner";
+import logUpdate from "log-update";
+import fetch from "isomorphic-fetch";
+import frame from "elegant-spinner";
+import cliSelect from "cli-select";
+import clipboardy from "node-clipboardy";
+import dayjs from "dayjs";
 
 const propsToShow = [
   "Type",
@@ -49,7 +49,7 @@ const propsToCompare = [
 const defaultKey = "5e540903";
 
 const initialUrl = "http://www.omdbapi.com/?apikey=";
-
+const program = new Command();
 program
   .description(
     "Get information about a movie or tv series or compare two movies!"

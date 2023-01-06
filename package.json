@@ -5,6 +5,7 @@
   "bin": {
     "movie": "./cli.js"
   },
+  "type": "module",
   "preferGlobal": true,
   "repository": {
     "type": "git",
