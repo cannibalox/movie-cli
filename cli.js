@@ -5,7 +5,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import elegantSpinner from "elegant-spinner";
 import logUpdate from "log-update";
-import fetch from "isomorphic-fetch";
+import fetch from "node-fetch";
 import frame from "elegant-spinner";
 import cliSelect from "cli-select";
 import clipboardy from "node-clipboardy";
