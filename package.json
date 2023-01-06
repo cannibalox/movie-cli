@@ -1,29 +1,30 @@
 {
-  "name": "movie-cli",
-  "version": "1.0.7",
-  "description": "fork of movie-cli by mayankchd customized for logseq - A CLI for getting information about a movie and comparing two movies",
+  "name": "movie-cli-2",
+  "version": "1.0.0",
+  "description": "a clî tool to fetch movies/series info from OMDBapi, comparing two movies, and saving metadata formatted as properties for Logseq. Forked from movie-cli by Mayankchd.",
   "bin": {
     "movie": "./cli.js"
   },
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cannibalox/movie-cli.git"
+    "url": "git+https://github.com/cannibalox/movie-cli-2.git"
   },
-  "author": "Mayank <imayankchd@gmail.com>",
+  "author": "Mayank <imayankchd@gmail.com>, cannibalox <hpx1@hpx1.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cannibalox/movie-cli/issues"
+    "url": "https://github.com/cannibalox/movie-cli-2/issues"
   },
-  "homepage": "https://github.com/cannibalox/movie-cli#readme",
+  "homepage": "https://github.com/cannibalox/movie-cli-2#readme",
   "dependencies": {
-    "chalk": "^5.2.0",
-    "commander": "^9.4.1",
-    "elegant-spinner": "^3.0.0",
-    "es6-promise": "^4.2.8",
+    "chalk": "^2.3.0",
+    "cli-select": "^1.1.2",
+    "commander": "^2.13.0",
+    "dayjs": "^1.11.7",
+    "elegant-spinner": "^1.0.1",
+    "es6-promise": "^4.2.4",
     "isomorphic-fetch": "^3.0.0",
-    "log-update": "^5.0.1",
-    "clipboardy": "^3.0.0",
-    "cli-select": "^1.1.2"
+    "log-update": "^2.3.0",
+    "node-clipboardy": "^1.0.3"
   }
 }
