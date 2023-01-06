@@ -6,10 +6,10 @@ const chalk = require("chalk");
 const elegantSpinner = require("elegant-spinner");
 const logUpdate = require("log-update");
 const fetch = require("isomorphic-fetch");
-const Promise = require("es6-promise").Promise;
 const frame = elegantSpinner();
 const cliSelect = require("cli-select");
 const clipboardy = require("node-clipboardy");
+const dayjs = require("dayjs");
 
 const propsToShow = [
   "Type",
