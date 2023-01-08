@@ -1,0 +1,46 @@
+export const cfg = {
+  // enter your api keys below
+  omdbapiKey: "xxxxx",
+  tmdbKey: "xxxxx",
+  // define properties to fetch for movie details
+  // other props include Title, Rated,imdbVotes, Type, DVD, Production
+  propsToShow: [
+    "Type",
+    "Year",
+    "Genre",
+    "Director",
+    "Writer",
+    "Actors",
+    "Plot",
+    "Language",
+    "Country",
+    "Awards",
+    "Metascore",
+    "imdbRating",
+    "Production",
+    "Released",
+    "Runtime",
+    "BoxOffice",
+    "imdbID",
+    "Poster",
+  ],
+  // properties to show when comparing movies
+  propsToCompare: [
+    "Title",
+    "Year",
+    "Released",
+    "Runtime",
+    "Genre",
+    "Metascore",
+    "imdbRating",
+    "BoxOffice",
+    "Production",
+    "Director",
+    "Writer",
+    "Actors",
+  ],
+  saveFilePath: "d:\\temp\\movie-cli-2\\",
+  copyToClipboard: true,
+  includeTitleProp: true,
+  inputMyRating: true,
+};

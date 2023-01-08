@@ -10,43 +10,9 @@ import frame from "elegant-spinner";
 import cliSelect from "cli-select";
 import clipboardy from "node-clipboardy";
 import dayjs from "dayjs";
-
-const propsToShow = [
-  "Type",
-  "Year",
-  "Genre",
-  "Director",
-  "Writer",
-  "Actors",
-  "Plot",
-  "Language",
-  "Country",
-  "Awards",
-  "Metascore",
-  "imdbRating",
-  "Production",
-  "Released",
-  "Runtime",
-  "BoxOffice",
-  "imdbID",
-  "Poster",
-];
-// Title, Rated,imdbVotes, Type, DVD, Production
-const propsToCompare = [
-  "Title",
-  "Year",
-  "Released",
-  "Runtime",
-  "Genre",
-  "Metascore",
-  "imdbRating",
-  "BoxOffice",
-  "Production",
-  "Director",
-  "Writer",
-  "Actors",
-];
-const defaultKey = "5e540903";
+import { cfg } from "./config.js";
+import fs from "fs";
+import sanitize from "sanitize-filename";
 
 const initialUrl = "http://www.omdbapi.com/?apikey=";
 const program = new Command();
@@ -64,7 +30,7 @@ if (program.args.length < 1) {
 if (program.args.join().toUpperCase().indexOf("::") !== -1) {
   const movies = program.args.join(" ").toUpperCase().split("::");
   const urls = movies.map(function (mov) {
-    return `${initialUrl}${defaultKey}&t=${mov.trim().replace(/ /g, "+")}`;
+    return `${initialUrl}${cfg.omdbapiKey}&t=${mov.trim().replace(/ /g, "+")}`;
   });
   //console.log('urls0 : ', urls[0]," >>> url1: ",urls[1]);
   const m0 = fetchMovie(urls[0]);
@@ -77,7 +43,7 @@ if (program.args.join().toUpperCase().indexOf("::") !== -1) {
     logUpdate("Loading..." + chalk.cyan.bold.dim(frame()));
   }, 50);
   fetch(
-    `${initialUrl}${defaultKey}&s=${program.args
+    `${initialUrl}${cfg.omdbapiKey}&s=${program.args
       .join()
       .trim()
       .replace(/ /g, "+")}`
@@ -109,7 +75,7 @@ function compareInfo(movies) {
     process.exit(1);
   }
 
-  propsToCompare.forEach(function (prop, i, arr) {
+  cfg.propsToCompare.forEach(function (prop, i, arr) {
     if (movies[0][prop] === "N/A" && movies[1][prop] === "N/A") {
       return;
     }
@@ -131,8 +97,9 @@ function printInfo(movie) {
     process.exit(1);
   }
   const movielist = new Array();
+  const movieyear = new Array();
   for (const result of movie["Search"]) {
-    movielist.push(result["Title"]);
+    movielist.push(`${result["Title"]} [[${result["Year"]}]]`);
   }
   cliSelect({
     values: movielist,
@@ -146,15 +113,16 @@ function printInfo(movie) {
     },
   })
     .then((value) => {
-      console.log(
-        chalk.bold.green.underline(
-          "\n" + value.value + " (" + movie["Search"][value.id]["Year"] + ")"
-        )
-      );
+      const movietitle = value.value;
+      console.log(chalk.bold.green.underline("\n" + movietitle));
       const interval = setInterval(function () {
         logUpdate("Loading..." + chalk.cyan.bold.dim(frame()));
       }, 50);
-      fetch(`${initialUrl}${defaultKey}&plot=full&t=${value.value}`)
+      fetch(
+        `${initialUrl}${cfg.omdbapiKey}&plot=full&i=${
+          movie["Search"][value.id]["imdbID"]
+        }`
+      )
         .then(function (res) {
           return res.json();
         })
@@ -165,20 +133,70 @@ function printInfo(movie) {
             console.log(chalk.red(movie.Error));
             process.exit(1);
           }
-          var output = "Tags:: #movies, #watched\n";
-          propsToShow.forEach(function (prop, i, arr) {
+          if (cfg.includeTitleProp === true) {
+            var clipboard = `title:: ${movietitle}\ntags:: #movies, #watched\n`;
+          } else {
+            var clipboard = "tags:: #movies, #watched\n";
+          }
+          cfg.propsToShow.forEach(function (prop, i, arr) {
             if (movie[prop] !== "N/A") {
               console.log(chalk.bold.cyan(prop) + "::", movie[prop], "");
-              // === copy to clipboard ====
-              if (prop == "Plot" || prop == "BoxOffice" || prop == "Awards") {
-                output = output.concat(prop, ':: "', movie[prop], '"\n');
+              // format metadata for logseq properties
+              if (prop === "imdbID") {
+                clipboard += `imdbID:: [${movie[prop]}](https://www.imdb.com/title/${movie[prop]})\n`;
+              } else if (
+                prop == "Plot" ||
+                prop == "BoxOffice" ||
+                prop == "Awards"
+              ) {
+                clipboard += `${prop}:: "${movie[prop]}"\n`;
               } else {
-                output = output.concat(prop, ":: ", movie[prop], "\n");
+                clipboard += `${prop}:: ${movie[prop]}\n`;
               }
             }
           });
-          clipboardy.writeSync(output);
-          console.log("\n>>> metadata copied to clipboard ! <<<\n\n");
+          console.log(
+            chalk.bold.cyan("imdbLink") +
+              ":: https://www.imdb.com/title/" +
+              movie["imdbID"],
+            "\n\n"
+          );
+          if (cfg.copyToClipboard === true) {
+            clipboardy.writeSync(clipboard);
+          }
+          if (cfg.saveFilePath !== "") {
+            cliSelect({
+              values: ["Save infos to .md File", "Exit"],
+              defaultValue: 1,
+              valueRenderer: (val, sel) => {
+                if (sel) {
+                  return chalk.bold.green.underline(val);
+                }
+                return val;
+              },
+            })
+              .then((resp) => {
+                if (resp.id == 0) {
+                  fs.writeFile(
+                    `${cfg.saveFilePath}${sanitize(movietitle)}.md`,
+                    clipboard,
+                    (err) => {
+                      if (err) {
+                        console.error(err);
+                      }
+                      console.log(
+                        `saved ${sanitize(movietitle)}.md to ${
+                          cfg.saveFilePath
+                        }`
+                      );
+                    }
+                  );
+                }
+              })
+              .catch((err) => {
+                console.log("cancelled");
+              });
+          }
         });
     })
     .catch(() => {
