@@ -1,7 +1,7 @@
 # movie-cli-2
 
 a CLI tool to fetch information about a movie or serie from OmdbApi.com and comparing two movies.
-It can optionnaly save the movie metadata to the clipboard, formatted as properties for Logseq note-taking app, or save them as a markdown file in a custom directory.
+It can optionally save the movie metadata to the clipboard, formatted as properties for Logseq note-taking app, or save them as a markdown file in a custom directory.
 
 requirements :
 - to fetch movie details you need an api key from omdbapi.com
