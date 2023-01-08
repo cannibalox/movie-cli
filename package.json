@@ -23,8 +23,9 @@
     "commander": "^9.4.1",
     "dayjs": "^1.11.7",
     "elegant-spinner": "^1.0.1",
-    "node-fetch": "^3.3.0",
     "log-update": "^5.0.1",
-    "node-clipboardy": "^1.0.3"
+    "node-clipboardy": "^1.0.3",
+    "node-fetch": "^3.3.0",
+    "sanitize-filename": "^1.6.3"
   }
 }
