@@ -5,7 +5,7 @@ It can optionally save the movie metadata to the clipboard and as a markdown fil
 # install
 
 ```
-npm i -g github.com:cannibalox/movie-cli-2
+npm i -g github:cannibalox/movie-cli-2
 ```
 # USAGE
 
