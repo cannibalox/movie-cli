@@ -9,7 +9,7 @@ requirements :
 # install
 
 ```
-npm i -g github.com:cannibalox/movie-cli-2
+npm i -g github:cannibalox/movie-cli-2
 ```
 
 # usage
