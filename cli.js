@@ -108,7 +108,7 @@ function compareInfo() {
 
 async function printInfo(movie) {
   const movielist = new Array();
-  const movieyear = new Array();
+  //const movieyear = new Array();
   for (const result of movie["Search"]) {
     movielist.push(`${result["Title"]} [[${result["Year"]}]]`);
   }
@@ -132,7 +132,7 @@ async function printInfo(movie) {
           movie["Search"][value.id]["imdbID"]
         }`
       );
-      console.log("movieinfo:", movieinfo);
+      //console.log("movieinfo:", movieinfo);
       logUpdate.clear();
       // custom tags
       var mytag = "";
@@ -152,13 +152,15 @@ async function printInfo(movie) {
         const tmdbinfo = await fetchMovie(
           `${tmdbUrlfind}${movieinfo.imdbID}?api_key=${cfg.tmdbKey}&language=en-US&external_source=imdb_id`
         );
-        // console.log('tmdb :', tmdbinfo);
-        //map only if originila-title is different from title
-        if (
-          tmdbinfo["movie_results"][0]["original_title"] !==
-          tmdbinfo["movie_results"][0]["title"]
-        ) {
-          originalTitle = tmdbinfo["movie_results"][0]["original_title"];
+        //console.log('tmdb :', tmdbinfo);
+        //map only if original_title is different from title
+        if (tmdbinfo["movie_results"].length > 0) {
+          if (
+            tmdbinfo["movie_results"][0]["original_title"] !==
+            tmdbinfo["movie_results"][0]["title"]
+          ) {
+            originalTitle = tmdbinfo["movie_results"][0]["original_title"];
+          }
         } else {
           originalTitle = "N/A";
         }
@@ -216,7 +218,7 @@ async function printInfo(movie) {
       }
     })
     .catch((err) => {
-      console.log("XXX - cancelled -", err);
+      console.log(" - cancelled -", err);
     });
 }
 
@@ -256,6 +258,14 @@ async function addCustomInfo() {
         active: "yes",
         inactive: "no",
       },
+      {
+        type: "toggle",
+        name: "saveToFile",
+        message: `Save details as ${movietitle}.md ?`,
+        initial: false,
+        active: "yes",
+        inactive: "no",
+      },
     ],
     { onCancel }
   );
@@ -275,7 +285,7 @@ async function addCustomInfo() {
     //console.log(movietitle);
     fs.appendFile(
       `${cfg.pathToJournal}${dateFormat(resp.watchdate, "yyyy_mm_dd")}.md`,
-      cfg.mytemplate.replace("%movietitle%", movietitle),
+      "\n\n" + cfg.mytemplate.replace("%movietitle%", movietitle),
       "utf-8",
       (err) => {
         if (err) {
@@ -284,44 +294,23 @@ async function addCustomInfo() {
       }
     );
   }
-  await saveFile();
-}
-
-function saveFile() {
-  cliSelect({
-    values: ["Save infos to .md File", "Exit"],
-    defaultValue: 1,
-    valueRenderer: (val, sel) => {
-      if (sel) {
-        return chalk.bold.green.underline(val);
+  if (resp.saveToFile === true) {
+    fs.writeFile(
+      `${cfg.saveFilePath}${sanitize(movietitle)}.md`,
+      clipboard,
+      (err) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log(
+            chalk.green(
+              `saved '${sanitize(movietitle)}.md' to '${cfg.saveFilePath}'\n\n`
+            )
+          );
+        }
       }
-      return val;
-    },
-  })
-    .then((resp) => {
-      if (resp.id === 0) {
-        fs.writeFile(
-          `${cfg.saveFilePath}${sanitize(movietitle)}.md`,
-          clipboard,
-          (err) => {
-            if (err) {
-              console.error(err);
-            } else {
-              console.log(
-                chalk.green(
-                  `saved '${sanitize(movietitle)}.md' to file:\\${
-                    cfg.saveFilePath
-                  }\n\n`
-                )
-              );
-            }
-          }
-        );
-      }
-    })
-    .catch((err) => {
-      console.log(err, "cancelled");
-    });
+    );
+  }
 }
 
 function convertToStars(val) {
