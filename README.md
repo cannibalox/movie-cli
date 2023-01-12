@@ -21,11 +21,11 @@ movie Ran::Kegamusha        // use `::` between titles for comparing two movies.
 ## configuration
 
 - edit the `config.js` file in a text editor and fill in your api keys, change options as required.
-- by default, movie info will be saved in the clipboard, this bahavior can be toggled off in the config.js
+- by default, the movie info will be saved in the clipboard, this behavior can be toggled off in the config.js
 - for logseq users:
-  - the movie info can be saved as a markdown file with `property:: value`
-  - don't forget to set your date format n the config file to match your logseq date format
-  - the script can optionally ask for a custom rating and watched date, they will be saved as properties `rating::` and `watched:: [[%date%]]`
+  - the movie metadata can be saved as a markdown file as `property:: value`. it can add a `title::` and fill default `tags::`
+  - don't forget to set your date format in the config file to match your logseq date format
+  - the script can optionally asks for a custom rating and watched date, they will be saved as properties `rating::` (converted to star) and `watched:: [[%date%]]`
   - filepaths should have trailing slashes or backslashes - on windows, use double backslashes.
 
 ## new features and improvements
