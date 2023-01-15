@@ -1,7 +1,7 @@
 export const cfg = {
   // enter your api keys (enclosed in brackets) here
   omdbapiKey: "5e540903",
-  tmdbKey: "1a8d1689f01251ca6ee058b29622441e", // req for Original-Title property
+  tmdbKey: "2469f2f227b5b0a46ffcbc2053dc356b", // req for Original-Title property
 
   // general options
   saveFilePath: "d:\\ls-test\\pages\\", // needs to be a valid filepath with trailing salash
