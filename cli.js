@@ -8,39 +8,149 @@ import logUpdate from "log-update";
 import cliSelect from "cli-select";
 import clipboardy from "node-clipboardy";
 import dateFormat, { masks } from "dateformat";
-import { cfg } from "./config.js";
+// import { cfg } from "./config.js";
 import fs from "fs";
 import sanitize from "sanitize-filename";
 import prompts from "prompts";
-
+import Conf from "conf";
+// import isFirstRun from "first-run";
+// import clearFirstRun from "first-run";
+import isFirstRun, { clearFirstRun } from "first-run";
 const omdbUrl = "http://www.omdbapi.com/?apikey=";
 const tmdbUrlfind = "https://api.themoviedb.org/3/find/";
 const program = new Command();
+const options = program.opts();
 const frame = elegantSpinner();
 const now = new Date();
-
+const cfg = new Conf({
+  projectName: 'movie-cli-2'
+});
 var clipboard = "";
 var movietitle = "";
 var originalTitle = "";
 
 ////// MAIN
+// var settings = {
+//   //omdbapiKey: "", //"5e540903",
+//   //tmdbKey: "", //"1a8d1689f01251ca6ee058b29622441e",
+//   saveFilePath: "d:\\ls-test\\pages\\",
+//   copyToClipboard: true,
+//   DefaultTags: "#watched",
+//   addCustomInfo: true, // if `false` it only displays info and exits
+//   askRating: true, // add custoôrating 1-10 (that gets converted to stars)
+//   askWatchedDate: true, // add a date formatted as myDateFormat on output
+//   askAnything: false, // input any text/string
+//   pathToJournal: "d:\\ls-test\\journals\\",
+//   mytemplate: "- DONE #watched [[%movietitle%]]", //text that will be appended to daily journam
+//   encloseStrings: true, // enclose value strings in doublébrackets (for plot,awards, boxoffice )
+//   myDateFormat: "yyyymmdd", // see https://github.com/felixge/node-dateformat#mask-options
+//   fetchOriginalTitle: true, // add original title property. requires TMDB api key`
+//   // define properties to fetch for movie details
+//   propsToShow: [
+//     //  "Title"
+//     //  "Type",
+//     "original-title", // is a special case handled by TMDB
+//     "Year",
+//     "Genre",
+//     "Director",
+//     "Writer",
+//     "Actors",
+//     "Plot",
+//     "Language",
+//     "Country",
+//     "Awards",
+//     "Metascore",
+//     "imdbRating",
+//     //  "imdbVotes",
+//     "Production",
+//     "Released",
+//     "Runtime",
+//     //  "Rated",
+//     //  "DVD",
+//     "BoxOffice",
+//     "imdbID",
+//     "Poster",
+//   ],
+//   // properties to show when comparing movies
+//   propsToCompare: [
+//     "Title",
+//     "Year",
+//     "Released",
+//     "Runtime",
+//     "Genre",
+//     "Metascore",
+//     "imdbRating",
+//     "BoxOffice",
+//     "Production",
+//     "Director",
+//     "Writer",
+//     "Actors",
+//   ],
+// };
 
 program
-  .description(
-    "Get information about a movie or tv series or compare two movies!"
+  .name("movie")
+  .usage("[title] or [movie1]::[movie2]")
+  .version(
+    `movie-cli-2 1.0.7\nsettings are saved in ${cfg.path}`,
+    "-v, --version",
+    "output the current version"
   )
+  .description(
+    "Get information about a movie or tv series or compare two movies"
+  )
+  .option("-k, --key", "set and save your apîkeys")
+  .option("-r, --reset", "resets options and clear keys")
+  .option("-s, --settings", "define settings")
+  .addHelpText(
+    "after",
+    `\n\nExamples:\n> movie Brazil\n> movie star wars::star trek   // will compare 'star wars' and 'star trek'
+
+settings are saved in ${cfg.path}`
+  )
+  .showHelpAfterError()
   .parse(process.argv);
 
-if (program.args.length < 1) {
-  console.log(chalk.red("Please give a movie name!!"));
-  process.exit(1);
+ // console.log(`movie-cli-2 v${program.version()} - first run ? ${isFirstRun({ name: "movie-cli-2" })}`);
+
+if ((isFirstRun({ name: "movie-cli-2" }) === true  && !options.reset) || options.settings) {
+  console.log(`Thank you for using ${program.version()}\n`+
+    chalk.cyan(`This configuration step should only appear on the first run, or after using the --reset or --settings options.\n`));
+  await setConfig();   
+}
+if (options.reset && isFirstRun({ name: "movie-cli-2" }) !== true) {
+   clearFirstRun({name: 'movie-cli-2'});
+   cfg.clear();
+   console.log('cleared prefs\n');
+   process.exit(1);
+} 
+if (options.key) {
+  //console.log("current omdb api key is", cfg.get("omdbapiKey"));
+  await askuser(
+    "omdbapiKey",`enter your omdb api key :`,
+    cfg.get("omdbapiKey", `2. enter your new tmdb api key :`, cfg.get("tmdbKey"))
+  ); 
+ // console.log("current tmdb api key is", cfg.get("tmdbKey"));
+  await askuser(
+    "tmdbKey",
+    `2. enter your new tmdb api key :`,
+    cfg.get("tmdbKey")
+  ); 
 }
 
+if (program.args.length < 1) {
+  console.log(chalk.red("\nPlease input a movie name\n"));
+  program.help();
+  process.exit(1);
+}
 if (program.args.join().toUpperCase().indexOf("::") !== -1) {
   compareInfo();
 } else {
+  if (cfg.get("omdbapiKey") === undefined) {
+    await askuser("omdbapiKey");    
+  }
   fetchMovie(
-    `${omdbUrl}${cfg.omdbapiKey}&s=${program.args
+    `${omdbUrl}${cfg.get('omdbapiKey')}&s=${program.args
       .join()
       .trim()
       .replace(/ /g, "+")}`
@@ -49,12 +159,12 @@ if (program.args.join().toUpperCase().indexOf("::") !== -1) {
       await printInfo(mov);
     })
     .then(async () => {
-      if (cfg.addCustomInfo === true) {
+      if (cfg.get("addCustomInfo") === true) {
         await addCustomInfo();
       }
     })
     .catch((error) => {
-      console.error(chalk.red(error));
+      console.error(chalk.red('fetch error :', error));
     });
 }
 
@@ -68,7 +178,7 @@ async function fetchMovie(url) {
     clearInterval(interval);
     logUpdate.clear();
     if (data.Response === "False") {
-      console.log(chalk.red("ERROR : can't find matching title !\n"));
+      console.log(chalk.red("ERROR : can't find matching title using ",url,"\n"));
       process.exit(1);
     }
     return data;
@@ -82,12 +192,12 @@ async function fetchMovie(url) {
 function compareInfo() {
   const movies = program.args.join(" ").toUpperCase().split("::");
   const urls = movies.map(function (mov) {
-    return `${omdbUrl}${cfg.omdbapiKey}&t=${mov.trim().replace(/ /g, "+")}`;
+    return `${omdbUrl}${cfg.get('omdbapiKey')}&t=${mov.trim().replace(/ /g, "+")}`;
   });
   const m0 = fetchMovie(urls[0]);
   const m1 = fetchMovie(urls[1]);
   Promise.all([m0, m1]).then((movies) => {
-    cfg.propsToCompare.forEach((prop) => {
+    cfg.get("propsToCompare").forEach((prop) => {
       if (movies[0][prop] === undefined) {
         movies[0][prop] = "N/A";
       }
@@ -128,7 +238,7 @@ async function printInfo(movie) {
       movietitle = value.value;
       console.log(chalk.bold.green.underline("\n" + movietitle));
       const movieinfo = await fetchMovie(
-        `${omdbUrl}${cfg.omdbapiKey}&plot=full&i=${
+        `${omdbUrl}${cfg.get('omdbapiKey')}&plot=full&i=${
           movie["Search"][value.id]["imdbID"]
         }`
       );
@@ -136,21 +246,21 @@ async function printInfo(movie) {
       logUpdate.clear();
       // custom tags
       var mytag = "";
-      if (cfg.includeTitleProp === true) {
+      if (cfg.get("includeTitleProp") === true) {
         if (movieinfo.Type === "movie") {
           mytag = "#movies";
         } else if (movieinfo.Type === "series") {
           mytag = "#TV";
         }
-        var clipboard = `title:: ${movietitle}\ntags:: ${cfg.DefaultTags}, ${mytag}\n`;
+        var clipboard = `title:: ${movietitle}\ntags:: ${cfg.get("DefaultTags")}, ${mytag}\n`;
       } else {
-        var clipboard = `tags:: ${cfg.DefaultTags}, ${movieinfo.Type}\n`;
+        var clipboard = `tags:: ${cfg.get("DefaultTags")}, ${movieinfo.Type}\n`;
       }
 
       // check original title
-      if (cfg.fetchOriginalTitle === true) {
+      if (cfg.get("fetchOriginalTitle") === true) {
         const tmdbinfo = await fetchMovie(
-          `${tmdbUrlfind}${movieinfo.imdbID}?api_key=${cfg.tmdbKey}&language=en-US&external_source=imdb_id`
+          `${tmdbUrlfind}${movieinfo.imdbID}?api_key=${cfg.get("tmdbKey")}&language=en-US&external_source=imdb_id`
         );
         //console.log('tmdb :', tmdbinfo);
         //map only if original_title is different from title
@@ -166,7 +276,7 @@ async function printInfo(movie) {
         }
       }
       // loop through keys
-      cfg.propsToShow.forEach(function (prop, i, arr) {
+      cfg.get('propsToShow').forEach(function (prop, i, arr) {
         const dispValue = Object.create(movieinfo);
         // reformat specific properties::values
         switch (prop) {
@@ -182,7 +292,7 @@ async function printInfo(movie) {
           case "Plot":
           case "BoxOffice":
           case "Awards":
-            if (cfg.encloseStrings === true) {
+            if (cfg.get("encloseStrings") === true) {
               dispValue[prop] = '"' + dispValue[prop] + '"';
             }
             break;
@@ -213,7 +323,7 @@ async function printInfo(movie) {
           ": https://www.imdb.com/title/",
         movieinfo["imdbID"] + "\n\n"
       );
-      if (cfg.copyToClipboard === true) {
+      if (cfg.get("copyToClipboard") === true) {
         clipboardy.write(clipboard);
       }
     })
@@ -229,7 +339,7 @@ async function addCustomInfo() {
   const resp = await prompts(
     [
       {
-        type: cfg.askRating === true ? "number" : null,
+        type: cfg.get("askRating") === true ? "number" : null,
         name: "rating",
         message: "input rating:: (0-10)  > ",
         initial: 5,
@@ -239,14 +349,14 @@ async function addCustomInfo() {
         max: 10,
       },
       {
-        type: cfg.askWatchedDate === true ? "date" : null,
+        type: cfg.get("askWatchedDate") === true ? "date" : null,
         name: "watchdate",
         message: "input watched:: (date) > ",
         initial: now,
         mask: "YYYY-MM-DD",
       },
       {
-        type: cfg.askAnything === true ? "text" : null,
+        type: cfg.get("askAnything") === true ? "text" : null,
         name: "customtext",
         message: "input custom text > ",
       },
@@ -270,11 +380,11 @@ async function addCustomInfo() {
     { onCancel }
   );
 
-  if (cfg.copyToClipboard === true) {
+  if (cfg.get("copyToClipboard") === true) {
     var clip = await clipboardy.read();
     clipboard += clip + convertToStars(resp.rating) + "\n";
     clipboard +=
-      "watched:: [[" + dateFormat(resp.watchdate, cfg.myDateFormat) + "]]\n";
+      "watched:: [[" + dateFormat(resp.watchdate, cfg.get("myDateFormat)") + "]]\n";
     if (resp.customtext !== undefined) {
       clipboard += resp.customtext;
     }
@@ -284,8 +394,8 @@ async function addCustomInfo() {
   if (resp.appendToJournal === true) {
     //console.log(movietitle);
     fs.appendFile(
-      `${cfg.pathToJournal}${dateFormat(resp.watchdate, "yyyy_mm_dd")}.md`,
-      "\n\n" + cfg.mytemplate.replace("%movietitle%", movietitle),
+      `${cfg.get("pathToJournal")}${dateFormat(resp.watchdate, "yyyy_mm_dd")}.md`,
+      "\n\n" + cfg.get("dailylogtemplate").replace("%movietitle%", movietitle),
       "utf-8",
       (err) => {
         if (err) {
@@ -296,7 +406,7 @@ async function addCustomInfo() {
   }
   if (resp.saveToFile === true) {
     fs.writeFile(
-      `${cfg.saveFilePath}${sanitize(movietitle)}.md`,
+      `${cfg.get("saveFilePath")}${sanitize(movietitle)}.md`,
       clipboard,
       (err) => {
         if (err) {
@@ -304,7 +414,7 @@ async function addCustomInfo() {
         } else {
           console.log(
             chalk.green(
-              `saved '${sanitize(movietitle)}.md' to '${cfg.saveFilePath}'\n\n`
+              `saved '${sanitize(movietitle)}.md' to '${cfg.get("saveFilePath")}'\n\n`
             )
           );
         }
@@ -326,4 +436,200 @@ function convertToStars(val) {
     result += "]]";
   }
   return result;
+}
+
+async function askuser(dispKey, msg, initial) {
+   var prName = await prompts({
+     type: "text",
+     name: "prOmdb",
+     message: msg,
+     initial: initial !== undefined ? initial : "",
+   });
+   cfg.set(dispKey, prName.prOmdb);
+ }
+
+async function setConfig() {
+  if (cfg.get("omdbapiKey") !== undefined && cfg.get("omdbapiKey") !== "") 
+    {var init1 = cfg.get("omdbapiKey")} else {var init1 = "5e540903"}
+  if (cfg.get("tmdbKey") !== undefined && cfg.get("tmdbKey") !== "") {
+      var init2 = cfg.get("tmdbKey");
+    } else {
+      var init2 = "1a8d1689f01251ca6ee058b29622441e";
+    }
+  await askuser("omdbapiKey", `1. enter your new omdb api key :`, init1); 
+  await askuser("tmdbKey", `2. enter your new tmdb api key :`, init2);  
+
+  const ask = await prompts([
+    {
+      type: "multiselect",
+      name: "propsToShow",
+      message: `3. select metadata to display when SEARCHING :`,
+      choices: [
+        { title: "original-title", value: "original-title" },
+        { title: "Year", value: "Year" },
+        { title: "Genre", value: "Genre" },
+        { title: "Director", value: "Director" },
+        { title: "Writer", value: "Writer" },
+        { title: "Actors", value: "Actors" },
+        { title: "Plot", value: "Plot" },
+        { title: "Language", value: "Language" },
+        { title: "Country", value: "Country" },
+        { title: "Awards", value: "Awards" },
+        { title: "Metascore", value: "Metascore" },
+        { title: "imdbRating", value: "imdbRating" },
+        { title: "imdbVotes", value: "imdbVotes" },
+        { title: "Production", value: "Production" },
+        { title: "Released", value: "Released" },
+        { title: "Runtime", value: "Runtime" },
+        { title: "Rated", value: "Rated" },
+        { title: "DVD", value: "DVD" },
+        { title: "BoxOffice", value: "BoxOffice" },
+        { title: "imdbID", value: "imdbID" },
+        { title: "Poster", value: "Poster" },
+      ],
+      optionsPerPage: 28,
+      min: 1,
+    },
+    {
+      type: "multiselect",
+      name: "propsToCompare",
+      message: `4. select metadata to fetch when COMPARING items :`,
+      choices: [
+        { title: "Title", value: "Title" },
+        { title: "Year", value: "Year" },
+        { title: "Released", value: "Released" },
+        { title: "Runtime", value: "Runtime" },
+        { title: "Genre", value: "Genre" },
+        { title: "Metascore", value: "Metascore" },
+        { title: "imdbRating", value: "imdbRating" },
+        { title: "BoxOffice", value: "BoxOffice" },
+        { title: "Production", value: "Production" },
+        { title: "Director", value: "Director" },
+        { title: "Writer", value: "Writer" },
+        { title: "Actors", value: "Actors" },
+      ],
+      optionsPerPage: 14,
+      min: 1,
+    },
+    {
+      type: "toggle",
+      name: "copyToClipboard",
+      message: `5. automatically save movie details to the clipboard (only for single search) ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: "toggle",
+      name: "saveToFile",
+      message: `6. display option to "Save to file" after each search ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+  ]);
+
+  const ask2 = await prompts([
+    {
+      type:
+        ask.copyToClipboard === true || ask.saveToFile === true
+          ? "toggle"
+          : null,
+      name: "includeTitleProp",
+      message: `   - include "Title:: %movie% [[%year]]" property when saving?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type:
+        ask.copyToClipboard === true || ask.saveToFile === true
+          ? "toggle"
+          : null,
+      name: "addDefaultTags",
+      message: `   - include "Tags:: %type%" property when saving ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: (prev) => (prev === true ? "text" : null),
+      name: "DefaultTags",
+      message: `   - enter default tags (string) :`,
+      initial: "#watched",
+    },
+    {
+      type: "toggle",
+      name: "askRating",
+      message: `7. prompt for user Rating (0-10) and add "rating::" property ? `,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: ask.ask4 === true ? "toggle" : null,
+      name: "ratingStars",
+      message: `   - convert rating to stars (else keep number) ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: "toggle",
+      name: "askWatchedDate",
+      message: `8. prompt for watched date and add "watched:: [[%date%]]" property ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: "toggle",
+      name: "askAnything",
+      message: `9. enable extra input (add a line with a note or review) ? `,
+      initial: false,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: "toggle",
+      name: "addToJournal",
+      message: `10.[logseq] append a log line in the daily journal page ?`,
+      initial: true,
+      active: "yes",
+      inactive: "no",
+    },
+    {
+      type: (prev) => (prev === true ? "text" : null),
+      name: "dailylogtemplate",
+      message: `   - set the log template (where %movie% will be replaced by the title):`,
+      initial: "- DONE #watched [[%movie%]]",
+    },
+    {
+      type: "text",
+      name: "myDateFormat",
+      message: `11.date format (see https://github.com/felixge/node-dateformat#mask-options) :`,
+      initial: "yyyymmdd",
+    },
+    {
+      type: "text",
+      name: "pathToJournal",
+      message: `12.path to logseq journals :`,
+      initial: "d:\\logseq\\journals\\",
+    },
+    {
+      type: "text",
+      name: "saveFilePath",
+      message: `13.path to save files (eg: logseq/pages) :`,
+      initial: "d:\\logseq\\pages\\",
+    },
+  ]);
+  //map settings to config file
+  const mapset = (ask) => {
+  for (const [key, value] of Object.entries(ask)) {
+      cfg.set(key, value);
+    }}
+  mapset(ask);
+  mapset(ask2);  
+
+  console.log('\n\nThank you ! settings are saved in :', chalk.yellow(cfg.path));
 }
