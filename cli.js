@@ -548,13 +548,13 @@ async function setConfig() {
       type: "text",
       name: "pathToJournal",
       message: `12.path to logseq journals (must exist) :`,
-      initial: "d:\\logseq-movies\\journals",
+      initial: "d:/logseq-movies/journals",
     },
     {
       type: "text",
       name: "saveFilePath",
       message: `13.path to save files (must exist) :`,
-      initial: "d:\\logseq-movies\\pages",
+      initial: "d:/logseq-movies/pages",
     },
   ]);
   //map settings to config file
