@@ -490,10 +490,7 @@ async function setConfig() {
       type: (prev) => (prev === true ? "text" : null),
       name: "DefaultTags",
       message: `   - enter default tags (string) :`,
-      initial:
-        cfg.get("DefaultTags").length > 0
-          ? cfg.get("DefaultTags")
-          : "#watched",
+      initial: "#watched",
     },
     {
       type: ask.addCustomInfo === true ? "toggle" : null,
@@ -539,37 +536,25 @@ async function setConfig() {
       type: (prev) => (prev === true ? "text" : null),
       name: "dailylogtemplate",
       message: `   - set the log template (where %movie% will be replaced by the title):`,
-      initial:
-        cfg.get("dailylogtemplate").length > 0
-          ? cfg.get("dailylogtemplate")
-          : "- DONE #watched [[%movie%]]",
+      initial: "- DONE #watched [[%movie%]]",
     },
     {
       type: "text",
       name: "myDateFormat",
       message: `11. date format (see https://github.com/felixge/node-dateformat#mask-options) :`,
-      initial:
-        cfg.get("myDateFormat").length > 0
-          ? cfg.get("myDateFormat")
-          : "yyyy-mm-dd",
+      initial: "yyyy-mm-dd",
     },
     {
       type: "text",
       name: "pathToJournal",
       message: `12.path to logseq journals (must exist) :`,
-      initial:
-        cfg.get("pathToJournal").length > 0
-          ? cfg.get("pathToJournal")
-          : "d:\\logseq-movies\\journals",
+      initial: "d:\\logseq-movies\\journals",
     },
     {
       type: "text",
       name: "saveFilePath",
       message: `13.path to save files (must exist) :`,
-      initial:
-        cfg.get("saveFilePath").length > 0
-          ? cfg.get("saveFilePath")
-          : "d:\\logseq-movies\\pages",
+      initial: "d:\\logseq-movies\\pages",
     },
   ]);
   //map settings to config file
