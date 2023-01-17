@@ -32,12 +32,11 @@ demo
 ## configuration
 
 - on first start, the program should enter configuration mode and will let you choose options (eg: define which metadata to fetch, auto-save to clipboard, etc...)
+- please get your own api keys for omdbapi (https://www.omdbapi.com/apikey.aspx) and TMDD (https://www.themoviedb.org/settings/api)
 - the configuration is automatically saved, use 1movie -v` to see the location of the config file
 - use `movie --reset` or `movie --settings` to modify the configuration after the first run 
 setup screen
 ![ss_WindowsTerminal_Windows_PowerShell_20230117_qWz46CpZWY](https://user-images.githubusercontent.com/4605693/212809801-627a80a4-b90f-4753-85d6-8bd138411daa.png)
-
-![ss_WindowsTerminal_Windows_PowerShell_20230117_69R5AQNSrg](https://user-images.githubusercontent.com/4605693/212809383-43f6f1f2-1655-471f-97d4-baef5969ffc3.png)
 
 ### for logseq users:
   - the movie metadata can be saved as a markdown file as `property:: value`. it can add a `title::` and fill default `tags::`
