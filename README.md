@@ -2,6 +2,8 @@
 
 a CLI tool to fetch movies and tv series details from omdbApi.com and tmdb, or comparing two movies.
 It can optionally save the movie metadata to the clipboard and as a markdown file in a custoôfolder. Metadata are formatted as `property:: value` for Logseq note-taking app. 
+version : 1.1.0 2022-01-17
+
 # install
 
 ```
