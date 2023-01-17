@@ -470,7 +470,7 @@ async function setConfig() {
           ? "toggle"
           : null,
       name: "includeTitleProp",
-      message: `   - include "Title:: %movie% [[%year]]" property when saving?`,
+      message: `   - include "Title:: %movie% [[%year%]]" property when saving?`,
       initial: true,
       active: "yes",
       inactive: "no",
